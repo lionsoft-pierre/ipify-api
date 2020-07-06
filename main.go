@@ -22,7 +22,6 @@ func main() {
 	// Setup all routes.  We only service API requests, so this is basic.
 	router := httprouter.New()
 	router.GET("/", api.GetIP)
-	router.OPTIONS("/", api.GetIP)
 
 	// Setup 404 / 405 handlers.
 	router.NotFound = http.HandlerFunc(api.NotFound)
