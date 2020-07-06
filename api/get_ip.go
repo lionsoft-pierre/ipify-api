@@ -26,7 +26,7 @@ func setupResponse(w *http.ResponseWriter, req *http.Request) {
 // By default, it will return the IP address in plain text, but can also return
 // data in both JSON and JSONP if requested to.
 func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	setupResponse(&w, req)
+	api.setupResponse(&w, req)
 	
 	if (*req).Method == "OPTIONS" {
 		return
