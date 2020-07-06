@@ -15,22 +15,11 @@ import (
 	"strings"
 )
 
-func setupResponse(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-    (*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-    (*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
 // GetIP returns a user's public facing IP address (IPv4 OR IPv6).
 //
 // By default, it will return the IP address in plain text, but can also return
 // data in both JSON and JSONP if requested to.
 func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	api.setupResponse(&w, req)
-	
-	if (*req).Method == "OPTIONS" {
-		return
-	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -50,7 +39,7 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 		switch format[0] {
 		case "json":
-			w.Header().Add("Content-Type", "application/json")
+			w.Header().Set("Content-Type", "application/json")
 			fmt.Fprintf(w, string(jsonStr))
 			return
 		case "jsonp":
@@ -61,7 +50,7 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 				callback = val[0]
 			}
 
-			w.Header().Add("Content-Type", "application/javascript")
+			w.Header().Set("Content-Type", "application/javascript")
 			fmt.Fprintf(w, callback+"("+string(jsonStr)+");")
 			return
 		}
@@ -69,6 +58,6 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	// If no 'format' querystring was specified, we'll default to returning the
 	// IP in plain text.
-	w.Header().Add("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain")
 	fmt.Fprintf(w, ip)
 }
