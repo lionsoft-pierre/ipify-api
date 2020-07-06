@@ -39,7 +39,8 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 		switch format[0] {
 		case "json":
-			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			fmt.Fprintf(w, string(jsonStr))
 			return
 		case "jsonp":
@@ -50,7 +51,8 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 				callback = val[0]
 			}
 
-			w.Header().Set("Content-Type", "application/javascript")
+			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			fmt.Fprintf(w, callback+"("+string(jsonStr)+");")
 			return
 		}
@@ -58,6 +60,7 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	// If no 'format' querystring was specified, we'll default to returning the
 	// IP in plain text.
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Fprintf(w, ip)
 }
