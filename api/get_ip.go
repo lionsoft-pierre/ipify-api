@@ -25,43 +25,52 @@ func GetIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if err != nil {
 		panic(err)
 	}
-
-	// We'll always grab the first IP address in the X-Forwarded-For header
-	// list.  We do this because this is always the *origin* IP address, which
-	// is the *true* IP of the user.  For more information on this, see the
-	// Wikipedia page: https://en.wikipedia.org/wiki/X-Forwarded-For
-	ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]).String()
 	
-	// Add CORS Headers
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8100")
-	w.Header().Add("Access-Control-Request-Method", "GET, OPTIONS");
+	switch r.Method {
+	case "OPTIONS":
+	    // handle preflight
+	    w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8100")
+	    w.Header().Add("Access-Control-Request-Method", "GET, OPTIONS")
+	    w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	    fmt.Fprintf(w, "")
+	case "GET":
+		// We'll always grab the first IP address in the X-Forwarded-For header
+		// list.  We do this because this is always the *origin* IP address, which
+		// is the *true* IP of the user.  For more information on this, see the
+		// Wikipedia page: https://en.wikipedia.org/wiki/X-Forwarded-For
+		ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]).String()
 
-	// If the user specifies a 'format' querystring, we'll try to return the
-	// user's IP address in the specified format.
-	if format, ok := r.Form["format"]; ok && len(format) > 0 {
-		jsonStr, _ := json.Marshal(models.IPAddress{ip})
+		// Add CORS Headers
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8100")
+		w.Header().Add("Access-Control-Request-Method", "GET, OPTIONS")
 
-		switch format[0] {
-		case "json":
-			w.Header().Add("Content-Type", "application/json")
-			fmt.Fprintf(w, string(jsonStr))
-			return
-		case "jsonp":
-			// If the user specifies a 'callback' parameter, we'll use that as
-			// the name of our JSONP callback.
-			callback := "callback"
-			if val, ok := r.Form["callback"]; ok && len(val) > 0 {
-				callback = val[0]
+		// If the user specifies a 'format' querystring, we'll try to return the
+		// user's IP address in the specified format.
+		if format, ok := r.Form["format"]; ok && len(format) > 0 {
+			jsonStr, _ := json.Marshal(models.IPAddress{ip})
+
+			switch format[0] {
+			case "json":
+				w.Header().Add("Content-Type", "application/json")
+				fmt.Fprintf(w, string(jsonStr))
+				return
+			case "jsonp":
+				// If the user specifies a 'callback' parameter, we'll use that as
+				// the name of our JSONP callback.
+				callback := "callback"
+				if val, ok := r.Form["callback"]; ok && len(val) > 0 {
+					callback = val[0]
+				}
+
+				w.Header().Add("Content-Type", "application/javascript")
+				fmt.Fprintf(w, callback+"("+string(jsonStr)+");")
+				return
 			}
-
-			w.Header().Add("Content-Type", "application/javascript")
-			fmt.Fprintf(w, callback+"("+string(jsonStr)+");")
-			return
 		}
-	}
 
-	// If no 'format' querystring was specified, we'll default to returning the
-	// IP in plain text.
-	w.Header().Add("Content-Type", "text/plain")
-	fmt.Fprintf(w, ip)
+		// If no 'format' querystring was specified, we'll default to returning the
+		// IP in plain text.
+		w.Header().Add("Content-Type", "text/plain")
+		fmt.Fprintf(w, ip)
+	}
 }
